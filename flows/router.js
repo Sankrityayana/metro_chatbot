@@ -239,9 +239,17 @@ async function handleHoldState(phone, parsed) {
     const confirmMessage = formatTicketConfirmation(result.ticket);
     await sendMessage(phone, confirmMessage);
     
-    // Send QR code if available
-    if (result.ticket.qrCodeUrl) {
-        await sendMedia(phone, result.ticket.qrCodeUrl, `QR Code for ${result.ticket.bookingId}`);
+    // Send QR code - try URL first, fallback to buffer
+    try {
+        if (result.ticket.qrCodeUrl) {
+            console.log(`📤 Sending QR code URL: ${result.ticket.qrCodeUrl}`);
+            await sendMedia(phone, result.ticket.qrCodeUrl, `QR Code - ${result.ticket.bookingId}`);
+        } else {
+            console.log('⚠️ No QR code URL available, QR code should be saved locally');
+        }
+    } catch (error) {
+        console.error('❌ Failed to send QR code:', error.message);
+        await sendMessage(phone, `⚠️ QR code generation issue. Your booking ${result.ticket.bookingId} is confirmed. Please contact support.`);
     }
     
     // Reset session
