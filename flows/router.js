@@ -3,7 +3,7 @@
  * Main message routing logic with state machine
  */
 
-const { getCurrentState, transitionTo, resetToInitial, getContextValue, STATES } = require('../services/session');
+const { getCurrentState, transitionTo, resetToInitial, getContextValue, setContextValue, STATES } = require('../services/session');
 const { sendMessage, sendMedia } = require('../services/whatsapp');
 const { parseMessage, extractSearchKeywords, parseEventSelection, parseQuantity, parseUserName, extractBookingId, parseConfirmation } = require('./parser');
 const { performSearch, formatSearchResults, formatEventDetails, getInvalidSelectionMessage } = require('./searchFlow');
@@ -13,6 +13,21 @@ const { getEventById } = require('../db/queries');
 const { formatTicketConfirmation, retrieveTicket, formatTicketDetails } = require('../services/tickets');
 const { getBookingsByPhone } = require('../db/queries');
 const { formatCurrency, formatShortDate } = require('../services/util');
+
+// Import new metro booking flow
+const {
+    getStationPromptMessage,
+    searchAndFormatTrainsByStation,
+    getQuantityPromptMessage,
+    getNamePromptMessage,
+    getConfirmationMessage,
+    processBookingPayment,
+    formatBookingSuccess,
+    parseTrainSelection,
+    parseQuantity: parseQty,
+    parseConfirmation: parseConfirm,
+    validateName
+} = require('./metroBookingFlow');
 
 /**
  * Main message router
@@ -36,6 +51,13 @@ async function routeMessage(phone, message) {
             return await sendMessage(phone, getCancelMessage());
         }
         
+        // Handle BOOK command - start new booking flow
+        if (parsed.intent === 'BOOK' || message.trim().toLowerCase() === 'book') {
+            await resetToInitial(phone);
+            await transitionTo(phone, STATES.BOOK_STATION, {});
+            return await sendMessage(phone, getStationPromptMessage());
+        }
+        
         // Handle booking ID retrieval
         if (parsed.intent === 'RETRIEVE_BOOKING') {
             return await handleBookingRetrieval(phone, extractBookingId(message));
@@ -50,6 +72,21 @@ async function routeMessage(phone, message) {
         switch (currentState) {
             case STATES.NONE:
                 return await handleNoneState(phone, parsed);
+            
+            case STATES.BOOK_STATION:
+                return await handleBookStationState(phone, parsed);
+            
+            case STATES.BOOK_TRAIN:
+                return await handleBookTrainState(phone, parsed);
+            
+            case STATES.BOOK_QTY:
+                return await handleBookQtyState(phone, parsed);
+            
+            case STATES.BOOK_NAME:
+                return await handleBookNameState(phone, parsed);
+            
+            case STATES.BOOK_CONFIRM:
+                return await handleBookConfirmState(phone, parsed);
                 
             case STATES.SEARCH:
                 return await handleSearchState(phone, parsed);
@@ -298,7 +335,7 @@ async function handleMyBookings(phone) {
     const bookings = getBookingsByPhone(phone);
     
     if (bookings.length === 0) {
-        return await sendMessage(phone, '📭 You have no bookings yet.\n\nType *SEARCH* to find events!');
+        return await sendMessage(phone, '📭 You have no bookings yet.\n\nType *BOOK* to book a ticket!');
     }
     
     let message = `📋 *Your Bookings (${bookings.length})*\n\n`;
@@ -314,6 +351,184 @@ async function handleMyBookings(phone) {
     message += `To view details, send the booking ID.\nExample: ${bookings[0].booking_id}`;
     
     return await sendMessage(phone, message);
+}
+
+// ============================================
+// NEW METRO BOOKING FLOW HANDLERS
+// ============================================
+
+/**
+ * Handle BOOK_STATION state - User enters station name
+ */
+async function handleBookStationState(phone, parsed) {
+    const stationName = parsed.cleaned;
+    
+    if (!stationName || stationName.length < 2) {
+        return await sendMessage(phone, '❌ Please enter a valid station name.\n\nExample: Majestic, MG Road, Indiranagar');
+    }
+    
+    // Search trains from this station
+    const result = searchAndFormatTrainsByStation(stationName);
+    
+    if (!result.success) {
+        return await sendMessage(phone, result.message);
+    }
+    
+    // Store trains in context and move to BOOK_TRAIN state
+    await transitionTo(phone, STATES.BOOK_TRAIN, { 
+        trains: result.trains,
+        stationName 
+    });
+    
+    return await sendMessage(phone, result.message);
+}
+
+/**
+ * Handle BOOK_TRAIN state - User selects train number
+ */
+async function handleBookTrainState(phone, parsed) {
+    const trains = getContextValue(phone, 'trains');
+    
+    if (!trains || trains.length === 0) {
+        await resetToInitial(phone);
+        return await sendMessage(phone, '❌ Session expired. Type *BOOK* to start again.');
+    }
+    
+    const selection = parseTrainSelection(parsed.cleaned, trains.length);
+    
+    if (selection === null) {
+        return await sendMessage(phone, `❌ Invalid selection.\n\nPlease reply with a number between 1 and ${trains.length}.`);
+    }
+    
+    const selectedTrain = trains[selection];
+    
+    // Store selected train and move to quantity state
+    await transitionTo(phone, STATES.BOOK_QTY, { 
+        selectedTrain,
+        trains: null  // Clear trains array
+    });
+    
+    return await sendMessage(phone, getQuantityPromptMessage(selectedTrain));
+}
+
+/**
+ * Handle BOOK_QTY state - User enters number of tickets
+ */
+async function handleBookQtyState(phone, parsed) {
+    const quantity = parseQty(parsed.cleaned);
+    
+    if (quantity === null) {
+        return await sendMessage(phone, '❌ Invalid quantity.\n\nPlease enter a number between 1 and 10.');
+    }
+    
+    const selectedTrain = getContextValue(phone, 'selectedTrain');
+    
+    if (!selectedTrain) {
+        await resetToInitial(phone);
+        return await sendMessage(phone, '❌ Session expired. Type *BOOK* to start again.');
+    }
+    
+    // Check if enough seats available
+    if (quantity > selectedTrain.available_seats) {
+        return await sendMessage(phone, `❌ Only ${selectedTrain.available_seats} seats available.\n\nPlease enter a smaller number.`);
+    }
+    
+    // Store quantity and move to name state
+    await transitionTo(phone, STATES.BOOK_NAME, { quantity });
+    
+    return await sendMessage(phone, getNamePromptMessage(selectedTrain, quantity));
+}
+
+/**
+ * Handle BOOK_NAME state - User enters their name
+ */
+async function handleBookNameState(phone, parsed) {
+    const validation = validateName(parsed.cleaned);
+    
+    if (!validation.valid) {
+        return await sendMessage(phone, `❌ ${validation.error}\n\nPlease enter your full name.\nExample: "Rahul Kumar"`);
+    }
+    
+    const userName = validation.name;
+    const selectedTrain = getContextValue(phone, 'selectedTrain');
+    const quantity = getContextValue(phone, 'quantity');
+    
+    if (!selectedTrain || !quantity) {
+        await resetToInitial(phone);
+        return await sendMessage(phone, '❌ Session expired. Type *BOOK* to start again.');
+    }
+    
+    // Get confirmation message with balance check
+    const confirmResult = await getConfirmationMessage(phone, selectedTrain, quantity, userName);
+    
+    // Store user name
+    await transitionTo(phone, STATES.BOOK_CONFIRM, { userName });
+    
+    // Send confirmation message
+    await sendMessage(phone, confirmResult.message);
+    
+    // If insufficient balance, reset session
+    if (!confirmResult.hasBalance) {
+        await resetToInitial(phone);
+    }
+    
+    return { success: true };
+}
+
+/**
+ * Handle BOOK_CONFIRM state - User confirms booking (YES/NO)
+ */
+async function handleBookConfirmState(phone, parsed) {
+    const confirmation = parseConfirm(parsed.cleaned);
+    
+    if (confirmation === null) {
+        return await sendMessage(phone, '❌ Please reply *YES* to confirm or *NO* to cancel.');
+    }
+    
+    if (!confirmation) {
+        await resetToInitial(phone);
+        return await sendMessage(phone, '❌ Booking cancelled.\n\nType *BOOK* to start a new booking.');
+    }
+    
+    // Get booking details from context
+    const selectedTrain = getContextValue(phone, 'selectedTrain');
+    const quantity = getContextValue(phone, 'quantity');
+    const userName = getContextValue(phone, 'userName');
+    
+    if (!selectedTrain || !quantity || !userName) {
+        await resetToInitial(phone);
+        return await sendMessage(phone, '❌ Session expired. Type *BOOK* to start again.');
+    }
+    
+    // Process payment and create booking
+    const result = await processBookingPayment(phone, selectedTrain, quantity, userName);
+    
+    if (!result.success) {
+        await resetToInitial(phone);
+        return await sendMessage(phone, `❌ Booking failed: ${result.error}\n\nPlease try again.`);
+    }
+    
+    // Send success message
+    const successMessage = formatBookingSuccess(result.ticket, result.amountDeducted, result.newBalance);
+    await sendMessage(phone, successMessage);
+    
+    // Send QR code
+    try {
+        if (result.ticket.qrCodeUrl) {
+            console.log(`📤 Sending QR code URL: ${result.ticket.qrCodeUrl}`);
+            await sendMedia(phone, result.ticket.qrCodeUrl, `QR Code - ${result.ticket.bookingId}`);
+        } else {
+            console.log('⚠️ No QR code URL available');
+        }
+    } catch (error) {
+        console.error('❌ Failed to send QR code:', error.message);
+        await sendMessage(phone, `⚠️ QR code will be available shortly. Use booking ID: ${result.ticket.bookingId}`);
+    }
+    
+    // Reset session
+    await resetToInitial(phone);
+    
+    return { success: true };
 }
 
 module.exports = {

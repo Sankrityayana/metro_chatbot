@@ -8,11 +8,11 @@ const { getOrCreateSession, updateSession, resetSession } = require('../db/queri
 // State machine states
 const STATES = {
     NONE: 'NONE',
-    SEARCH: 'SEARCH',
-    EVENT_SELECTED: 'EVENT_SELECTED',
-    QTY: 'QTY',
-    HOLD: 'HOLD',
-    USER_NAME: 'USER_NAME',
+    BOOK_STATION: 'BOOK_STATION',
+    BOOK_TRAIN: 'BOOK_TRAIN',
+    BOOK_QTY: 'BOOK_QTY',
+    BOOK_NAME: 'BOOK_NAME',
+    BOOK_CONFIRM: 'BOOK_CONFIRM',
     CONFIRMED: 'CONFIRMED'
 };
 

@@ -11,15 +11,19 @@ function getHelpMessage() {
 
 Here's what I can help you with:
 
+*🎫 BOOK TICKET*
+Send: "book"
+Quick metro ticket booking with instant payment
+
 *🔍 SEARCH TRAINS*
 Send: "search [station/route/time]"
 Example: "search majestic" or "search purple line"
 
-*🎫 MY BOOKINGS*
+*📋 MY BOOKINGS*
 Send: "my bookings"
 View all your metro tickets
 
-*📋 RETRIEVE TICKET*
+*🎟️ RETRIEVE TICKET*
 Send your booking ID
 Example: "BKG-57RF1A"
 
@@ -31,11 +35,8 @@ Cancel current booking flow
 Send: "help"
 Show this menu
 
-*Quick Tips:*
-• Search by station name, metro line, or time
-• Book tickets for Purple Line & Green Line
-• Save your booking IDs for travel
-• QR codes are scanned at metro gates
+*Quick Start:*
+Just type *BOOK* and follow the steps!
 
 Need help? Just ask!`;
 }
@@ -62,14 +63,15 @@ function getWelcomeMessage() {
 
 Book your metro tickets instantly via WhatsApp!
 
-🚇 Search metro trains by station
-🎫 Book tickets in seconds
+🚇 Quick booking with "BOOK" command
+🎫 Instant payment from metro balance
 📱 Get QR code for metro entry
-✅ Manage your bookings
+✅ View and manage bookings
 
-Type *HELP* to get started or search for a train!
+*To get started:*
+Type *BOOK* to book a ticket now!
 
-Example: "search majestic" or "search purple line"`;
+Or type *HELP* for all options.`;
 }
 
 /**

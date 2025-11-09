@@ -32,6 +32,23 @@ function searchEvents(keyword, limit = 10) {
 }
 
 /**
+ * Search trains by station name
+ */
+function searchTrainsByStation(stationName, limit = 10) {
+    const db = getDatabase();
+    const query = `
+        SELECT * FROM events
+        WHERE is_active = 1
+        AND available_seats > 0
+        AND venue LIKE ?
+        ORDER BY event_date ASC
+        LIMIT ?
+    `;
+    const searchPattern = `%${stationName}%`;
+    return db.prepare(query).all(searchPattern, limit);
+}
+
+/**
  * Get event by ID
  */
 function getEventById(eventId) {
@@ -435,9 +452,133 @@ function getMetrics() {
     };
 }
 
+// ============================================
+// METRO ACCOUNT QUERIES
+// ============================================
+
+/**
+ * Get or create metro account for a phone number
+ */
+function getOrCreateMetroAccount(phone) {
+    const db = getDatabase();
+    
+    // Try to get existing account
+    let account = db.prepare('SELECT * FROM metro_accounts WHERE phone = ?').get(phone);
+    
+    // Create if doesn't exist
+    if (!account) {
+        db.prepare(`
+            INSERT INTO metro_accounts (phone, balance)
+            VALUES (?, 0.00)
+        `).run(phone);
+        
+        account = db.prepare('SELECT * FROM metro_accounts WHERE phone = ?').get(phone);
+    }
+    
+    return account;
+}
+
+/**
+ * Get metro account balance
+ */
+function getMetroBalance(phone) {
+    const db = getDatabase();
+    const account = db.prepare('SELECT balance FROM metro_accounts WHERE phone = ?').get(phone);
+    return account ? parseFloat(account.balance) : 0.00;
+}
+
+/**
+ * Add money to metro account
+ */
+function addMetroBalance(phone, amount, description = 'Balance added') {
+    const db = getDatabase();
+    
+    return db.transaction(() => {
+        // Get current balance
+        const account = getOrCreateMetroAccount(phone);
+        const newBalance = parseFloat(account.balance) + parseFloat(amount);
+        
+        // Update balance
+        db.prepare(`
+            UPDATE metro_accounts 
+            SET balance = ?, updated_at = datetime('now')
+            WHERE phone = ?
+        `).run(newBalance, phone);
+        
+        // Record transaction
+        db.prepare(`
+            INSERT INTO transactions (phone, type, amount, balance_after, description)
+            VALUES (?, 'credit', ?, ?, ?)
+        `).run(phone, amount, newBalance, description);
+        
+        return newBalance;
+    })();
+}
+
+/**
+ * Deduct money from metro account
+ */
+function deductMetroBalance(phone, amount, description = 'Ticket purchase', bookingId = null) {
+    const db = getDatabase();
+    
+    return db.transaction(() => {
+        // Get current balance
+        const account = getOrCreateMetroAccount(phone);
+        const currentBalance = parseFloat(account.balance);
+        
+        // Check if sufficient balance
+        if (currentBalance < parseFloat(amount)) {
+            throw new Error('Insufficient balance');
+        }
+        
+        const newBalance = currentBalance - parseFloat(amount);
+        
+        // Update balance
+        db.prepare(`
+            UPDATE metro_accounts 
+            SET balance = ?, updated_at = datetime('now')
+            WHERE phone = ?
+        `).run(newBalance, phone);
+        
+        // Record transaction
+        db.prepare(`
+            INSERT INTO transactions (phone, type, amount, balance_after, description, booking_id)
+            VALUES (?, 'debit', ?, ?, ?, ?)
+        `).run(phone, amount, newBalance, description, bookingId);
+        
+        return newBalance;
+    })();
+}
+
+/**
+ * Get transaction history
+ */
+function getTransactionHistory(phone, limit = 10) {
+    const db = getDatabase();
+    return db.prepare(`
+        SELECT * FROM transactions
+        WHERE phone = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+    `).all(phone, limit);
+}
+
+/**
+ * Update metro account name
+ */
+function updateMetroAccountName(phone, name) {
+    const db = getDatabase();
+    db.prepare(`
+        UPDATE metro_accounts 
+        SET name = ?, updated_at = datetime('now')
+        WHERE phone = ?
+    `).run(name, phone);
+}
+
 module.exports = {
     // Events
     searchEvents,
+    searchTrainsByStation,
     getEventById,
     getAllEvents,
     createEvent,
@@ -463,6 +604,14 @@ module.exports = {
     updateSession,
     resetSession,
     cleanupOldSessions,
+    
+    // Metro Accounts
+    getOrCreateMetroAccount,
+    getMetroBalance,
+    addMetroBalance,
+    deductMetroBalance,
+    getTransactionHistory,
+    updateMetroAccountName,
     
     // Metrics
     getMetrics
