@@ -1,14 +1,14 @@
--- Events Table
+-- Metro Routes Table (replaces Events)
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT,
-    city TEXT NOT NULL,
-    venue TEXT NOT NULL,
-    event_date TEXT NOT NULL, -- ISO8601 format: YYYY-MM-DD HH:MM:SS
-    total_seats INTEGER NOT NULL DEFAULT 0,
-    available_seats INTEGER NOT NULL DEFAULT 0,
-    price REAL NOT NULL DEFAULT 0.00,
+    title TEXT NOT NULL, -- Route name like "Purple Line - North-South"
+    description TEXT, -- Route description
+    city TEXT NOT NULL, -- Always "Bangalore" for this system
+    venue TEXT NOT NULL, -- From Station → To Station (e.g., "Nagasandra → Yelachenahalli")
+    event_date TEXT NOT NULL, -- Departure time in ISO8601 format: YYYY-MM-DD HH:MM:SS
+    total_seats INTEGER NOT NULL DEFAULT 0, -- Total capacity per train
+    available_seats INTEGER NOT NULL DEFAULT 0, -- Available seats
+    price REAL NOT NULL DEFAULT 0.00, -- Ticket price in INR
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     is_active INTEGER NOT NULL DEFAULT 1 -- 1 = active, 0 = inactive
@@ -63,11 +63,17 @@ CREATE INDEX IF NOT EXISTS idx_bookings_phone ON bookings(phone);
 CREATE INDEX IF NOT EXISTS idx_bookings_booking_id ON bookings(booking_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_phone ON sessions(phone);
 
--- Insert sample events for testing
+-- Insert Bangalore Metro routes for testing
+-- Purple Line (North-South): Challaghatta - Whitefield (Baiyappanahalli)
+-- Green Line (East-West): Nagasandra - Silk Institute
+-- Note: Using 'venue' field for route (From → To), 'title' for line name
 INSERT INTO events (title, description, city, venue, event_date, total_seats, available_seats, price)
 VALUES 
-    ('Rock Concert 2025', 'Amazing rock concert featuring top bands', 'Mumbai', 'DY Patil Stadium', '2025-12-15 19:00:00', 5000, 5000, 1500.00),
-    ('Tech Conference', 'Annual technology conference with industry leaders', 'Bangalore', 'KTPO Convention Center', '2025-11-25 09:00:00', 2000, 2000, 2500.00),
-    ('Comedy Night Live', 'Stand-up comedy show with famous comedians', 'Delhi', 'Jawaharlal Nehru Stadium', '2025-12-01 20:00:00', 3000, 3000, 800.00),
-    ('Classical Music Evening', 'Traditional Indian classical music performance', 'Chennai', 'Music Academy', '2025-11-20 18:30:00', 1500, 1500, 500.00),
-    ('Food Festival', 'Street food festival with cuisines from across India', 'Pune', 'Koregaon Park Grounds', '2025-12-10 11:00:00', 10000, 10000, 200.00);
+    ('Purple Line Express', 'Baiyappanahalli to MG Road - Fast service', 'Bangalore', 'Baiyappanahalli → MG Road', '2025-11-09 08:00:00', 300, 300, 30.00),
+    ('Green Line Morning', 'Yeshwanthpur to Majestic - Peak hour service', 'Bangalore', 'Yeshwanthpur → Majestic', '2025-11-09 09:00:00', 350, 350, 25.00),
+    ('Purple Line Peak', 'Indiranagar to Cubbon Park - Morning rush', 'Bangalore', 'Indiranagar → Cubbon Park', '2025-11-09 08:30:00', 300, 300, 20.00),
+    ('Green Line Express', 'Rajajinagar to Vidhana Soudha - Fast service', 'Bangalore', 'Rajajinagar → Vidhana Soudha', '2025-11-09 10:00:00', 350, 350, 25.00),
+    ('Purple Line Afternoon', 'MG Road to Jayanagar - Afternoon service', 'Bangalore', 'MG Road → Jayanagar', '2025-11-09 14:00:00', 300, 300, 30.00),
+    ('Green Line Evening', 'Majestic to Peenya Industry - Evening service', 'Bangalore', 'Majestic → Peenya Industry', '2025-11-09 18:00:00', 350, 350, 35.00),
+    ('Purple Line Late', 'Cubbon Park to Baiyappanahalli - Late evening', 'Bangalore', 'Cubbon Park → Baiyappanahalli', '2025-11-09 20:00:00', 300, 300, 30.00),
+    ('Green Line Night', 'Sandal Soap Factory to Yeshwanthpur - Night service', 'Bangalore', 'Sandal Soap Factory → Yeshwanthpur', '2025-11-09 21:00:00', 350, 350, 25.00);

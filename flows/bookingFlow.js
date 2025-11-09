@@ -49,18 +49,18 @@ function formatQuantityConfirmation(event, quantity) {
     
     return `✅ *Quantity Selected: ${quantity} ticket(s)*
 
-🎭 Event: ${event.title}
-📍 Location: ${event.city}
-📅 Date: ${formatEventDate(event.event_date)}
-💰 Price per ticket: ${formatCurrency(event.price)}
+🚇 Train: ${event.title}
+� Route: ${event.venue}
+� Departure: ${formatEventDate(event.event_date)}
+💰 Fare per ticket: ${formatCurrency(event.price)}
 
-*Total: ${formatCurrency(totalPrice)}*
+*Total Fare: ${formatCurrency(totalPrice)}*
 
 ━━━━━━━━━━━━━━━━
 
 Please reply with your *full name* for the booking.
 
-Example: "John Doe"`;
+Example: "Rahul Kumar"`;
 }
 
 /**
@@ -72,8 +72,8 @@ function formatReservationHold(reservation, ttlMinutes) {
     return `⏳ *Seats Reserved!*
 
 🎫 ${reservation.quantity} ticket(s) held for you
-🎭 ${reservation.title}
-📍 ${reservation.venue}, ${reservation.city}
+🚇 ${reservation.title}
+� ${reservation.venue}
 
 💰 Total: ${formatCurrency(totalPrice)}
 

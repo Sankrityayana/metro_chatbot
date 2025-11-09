@@ -29,13 +29,13 @@ function formatSearchResults(results, keyword) {
         return getNoResultsMessage(keyword);
     }
     
-    let message = `🔍 *Search Results for "${keyword}"*\n\n`;
-    message += `Found ${results.length} event(s):\n\n`;
+    let message = `� *Metro Trains for "${keyword}"*\n\n`;
+    message += `Found ${results.length} train(s):\n\n`;
     
     results.forEach((event, index) => {
         message += `*${index + 1}. ${event.title}*\n`;
-        message += `📍 ${event.city} • ${event.venue}\n`;
-        message += `📅 ${formatEventDate(event.event_date)}\n`;
+        message += `� ${event.venue}\n`;
+        message += `� Departure: ${formatEventDate(event.event_date)}\n`;
         message += `💰 ${formatCurrency(event.price)} per ticket\n`;
         message += `🎫 ${event.available_seats} seats available\n`;
         
@@ -46,7 +46,7 @@ function formatSearchResults(results, keyword) {
         message += `\n`;
     });
     
-    message += `Reply with the number (1-${results.length}) to view details and book.`;
+    message += `Reply with the number (1-${results.length}) to book your ticket.`;
     
     return message;
 }
@@ -55,18 +55,18 @@ function formatSearchResults(results, keyword) {
  * Format single event details
  */
 function formatEventDetails(event) {
-    let message = `🎭 *${event.title}*\n\n`;
+    let message = `🚇 *${event.title}*\n\n`;
     
     if (event.description) {
         message += `${event.description}\n\n`;
     }
     
-    message += `📍 *Location:*\n${event.venue}, ${event.city}\n\n`;
-    message += `📅 *Date & Time:*\n${formatEventDate(event.event_date)}\n\n`;
-    message += `💰 *Price:* ${formatCurrency(event.price)} per ticket\n`;
+    message += `� *Route:*\n${event.venue}\n\n`;
+    message += `� *Departure Time:*\n${formatEventDate(event.event_date)}\n\n`;
+    message += `💰 *Fare:* ${formatCurrency(event.price)} per ticket\n`;
     message += `🎫 *Available Seats:* ${event.available_seats}\n\n`;
     message += `━━━━━━━━━━━━━━━━\n\n`;
-    message += `Ready to book? Reply with the number of tickets you want (1-10).`;
+    message += `Ready to book? Reply with number of tickets (1-10).`;
     
     return message;
 }
@@ -75,12 +75,12 @@ function formatEventDetails(event) {
  * Get no results message
  */
 function getNoResultsMessage(keyword) {
-    return `😕 No events found for "${keyword}"
+    return `😕 No trains found for "${keyword}"
 
 Try:
-• Different keywords (city, artist, genre)
-• Broader search terms
-• Check spelling
+• Station names (Majestic, Indiranagar, MG Road)
+• Metro lines (Purple Line, Green Line)
+• Route names
 
 Or type *HELP* to see all options.`;
 }
@@ -100,17 +100,17 @@ Or type *CANCEL* to start over.`;
  * Get search prompt message
  */
 function getSearchPromptMessage() {
-    return `🔍 *Search for Events*
+    return `🔍 *Search Metro Trains*
 
-What are you looking for?
+Which train are you looking for?
 
 Examples:
-• "mumbai concerts"
-• "tech conference"
-• "comedy show delhi"
-• "music festival"
+• "majestic"
+• "purple line"
+• "mg road"
+• "indiranagar"
 
-Type your search keywords:`;
+Type your search:`;
 }
 
 module.exports = {

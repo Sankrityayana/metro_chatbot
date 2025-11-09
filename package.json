@@ -1,7 +1,7 @@
 {
-  "name": "whatsapp-ticketing-chatbot",
+  "name": "bangalore-metro-booking-bot",
   "version": "1.0.0",
-  "description": "WhatsApp-based event ticketing chatbot with booking, QR code generation, and admin management",
+  "description": "WhatsApp-based Bangalore Metro train booking chatbot with QR tickets and real-time seat availability",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -14,8 +14,10 @@
   "keywords": [
     "whatsapp",
     "chatbot",
-    "ticketing",
-    "booking",
+    "bangalore-metro",
+    "metro-booking",
+    "train-tickets",
+    "namma-metro",
     "express",
     "sqlite"
   ],

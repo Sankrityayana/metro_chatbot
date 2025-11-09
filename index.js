@@ -195,7 +195,7 @@ startExpirationJob();
 // Start server
 app.listen(PORT, () => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🤖 WhatsApp Ticketing Chatbot');
+    console.log('🚇 Bangalore Metro Booking Bot');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -204,8 +204,8 @@ app.listen(PORT, () => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('Endpoints:');
     console.log(`  POST /webhook - WhatsApp webhook`);
-    console.log(`  GET  /admin/events - Event management`);
-    console.log(`  GET  /admin/bookings - Booking management`);
+    console.log(`  GET  /admin/events - Metro route management`);
+    console.log(`  GET  /admin/bookings - Ticket management`);
     console.log(`  GET  /health - Health check`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });

@@ -120,26 +120,26 @@ function retrieveTicket(bookingId) {
  * @returns {String} Formatted message
  */
 function formatTicketConfirmation(ticket) {
-    return `🎉 *BOOKING CONFIRMED!*
+    return `🎉 *METRO TICKET CONFIRMED!*
 
 📋 *Booking ID:* ${ticket.bookingId}
-🎭 *Event:* ${ticket.eventTitle}
-📍 *Venue:* ${ticket.venue}, ${ticket.city}
-📅 *Date:* ${formatEventDate(ticket.eventDate)}
-👤 *Name:* ${ticket.userName}
+🚇 *Train:* ${ticket.eventTitle}
+� *Route:* ${ticket.venue}
+� *Departure:* ${formatEventDate(ticket.eventDate)}
+👤 *Passenger:* ${ticket.userName}
 🎫 *Tickets:* ${ticket.quantity}
-💰 *Total:* ${formatCurrency(ticket.totalPrice)}
+💰 *Total Fare:* ${formatCurrency(ticket.totalPrice)}
 
-✅ Your tickets are confirmed! A QR code has been sent separately.
+✅ Your metro tickets are confirmed! QR code sent separately.
 
 *Important:*
 • Save your Booking ID: *${ticket.bookingId}*
-• Show the QR code at the venue entrance
-• Arrive 30 minutes before the event
+• Scan QR code at metro entry gates
+• Arrive 10 minutes before departure
 
 To view this booking again, send: *${ticket.bookingId}*
 
-Thank you for booking with us! 🎉`;
+Happy journey with Bangalore Metro! 🚇`;
 }
 
 /**
@@ -150,15 +150,15 @@ Thank you for booking with us! 🎉`;
 function formatTicketDetails(ticket) {
     const statusEmoji = ticket.status === 'confirmed' ? '✅' : '❌';
     
-    return `${statusEmoji} *BOOKING DETAILS*
+    return `${statusEmoji} *METRO TICKET DETAILS*
 
 📋 *Booking ID:* ${ticket.bookingId}
-🎭 *Event:* ${ticket.eventTitle}
-📍 *Venue:* ${ticket.venue}, ${ticket.city}
-📅 *Date:* ${formatEventDate(ticket.eventDate)}
-👤 *Name:* ${ticket.userName}
+🚇 *Train:* ${ticket.eventTitle}
+� *Route:* ${ticket.venue}
+� *Departure:* ${formatEventDate(ticket.eventDate)}
+👤 *Passenger:* ${ticket.userName}
 🎫 *Tickets:* ${ticket.quantity}
-💰 *Total:* ${formatCurrency(ticket.totalPrice)}
+💰 *Total Fare:* ${formatCurrency(ticket.totalPrice)}
 📌 *Status:* ${ticket.status.toUpperCase()}
 
 Booked on: ${formatEventDate(ticket.createdAt)}`;

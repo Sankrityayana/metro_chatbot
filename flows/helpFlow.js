@@ -7,19 +7,19 @@
  * Get help menu message
  */
 function getHelpMessage() {
-    return `🤖 *Welcome to Event Booking Bot!*
+    return `🚇 *Welcome to Bangalore Metro Booking Bot!*
 
 Here's what I can help you with:
 
-*🔍 SEARCH EVENTS*
-Send: "search [keyword]"
-Example: "search mumbai" or "search concert"
+*🔍 SEARCH TRAINS*
+Send: "search [station/route/time]"
+Example: "search majestic" or "search purple line"
 
 *🎫 MY BOOKINGS*
 Send: "my bookings"
-View all your confirmed bookings
+View all your metro tickets
 
-*📋 RETRIEVE BOOKING*
+*📋 RETRIEVE TICKET*
 Send your booking ID
 Example: "BKG-57RF1A"
 
@@ -32,12 +32,12 @@ Send: "help"
 Show this menu
 
 *Quick Tips:*
-• Search by city, event name, or date
-• Follow the step-by-step booking process
-• Save your booking IDs for future reference
-• QR codes are valid for entry
+• Search by station name, metro line, or time
+• Book tickets for Purple Line & Green Line
+• Save your booking IDs for travel
+• QR codes are scanned at metro gates
 
-Need assistance? Just type your question!`;
+Need help? Just ask!`;
 }
 
 /**
@@ -49,7 +49,7 @@ function getUnknownCommandMessage() {
 Type *HELP* to see available commands.
 
 Or try:
-• "search concert" - to find events
+• "search majestic" - to find trains
 • "my bookings" - to view your tickets
 • Send your booking ID to retrieve it`;
 }
@@ -58,18 +58,18 @@ Or try:
  * Get welcome message for new users
  */
 function getWelcomeMessage() {
-    return `👋 *Welcome to Event Booking Bot!*
+    return `👋 *Welcome to Bangalore Metro Booking Bot!*
 
-I can help you discover and book tickets for amazing events!
+Book your metro tickets instantly via WhatsApp!
 
-🎭 Search thousands of events
-🎫 Book tickets instantly
-📱 Get QR code tickets
+🚇 Search metro trains by station
+🎫 Book tickets in seconds
+📱 Get QR code for metro entry
 ✅ Manage your bookings
 
-Type *HELP* to get started or search for an event!
+Type *HELP* to get started or search for a train!
 
-Example: "search rock concert"`;
+Example: "search majestic" or "search purple line"`;
 }
 
 /**
@@ -102,7 +102,7 @@ function getCancelMessage() {
     return `❌ Current operation cancelled.
 
 What would you like to do next?
-• Search for events
+• Search for trains
 • View bookings
 • Type HELP for options`;
 }
