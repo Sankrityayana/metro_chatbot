@@ -107,7 +107,7 @@ VALUES
 -- These are test accounts with preloaded balance
 INSERT OR IGNORE INTO metro_accounts (phone, name, balance)
 VALUES 
-    ('919876543210', 'Test User', 500.00),
+    ('919876543210', 'Test User', 200.00),
     ('918123456789', 'Rahul Kumar', 1000.00),
     ('917890123456', 'Priya Sharma', 750.00),
     ('918765432109', 'Demo Account', 250.00);
